@@ -393,7 +393,6 @@ impl PluginState {
     fn apply_smart_truncation(&self, segments: &[&str], min_segments: usize) -> String {
         let separator = &self.config().session_separator;
         let max_length = 29;
-        eprintln!("Applying smart truncation for segments: {:?} with min_segments: {}", segments, min_segments);
 
         // Start with minimum required segments from the right
         let mut result_segments: Vec<String> = segments
@@ -437,7 +436,6 @@ impl PluginState {
             let mut test_segments = vec![abbreviated.clone()];
             test_segments.extend(result_segments.clone());
             let test_length = test_segments.join(separator).len();
-            eprintln!("test_length with segment '{}': {}", segment, test_length);
 
             if test_length <= max_length {
                 result_segments.insert(0, abbreviated);

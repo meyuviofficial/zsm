@@ -148,42 +148,45 @@ impl PluginState {
 
     /// Combine sessions and zoxide directories for display
     fn combined_items(&self) -> Vec<SessionItem> {
-        let mut items = Vec::new();
+        use std::collections::HashSet;
 
-        // First, add existing sessions that match zoxide directories (including incremented ones)
+        let mut items = Vec::new();
+        let mut shown_session_names: HashSet<String> = HashSet::new();
+
+        // Add every active session. When the session name matches a zoxide
+        // directory's generated name (exact or incremented), surface that path
+        // alongside it; otherwise leave the directory blank.
         for session in self.session_manager.sessions() {
-            // Check if this session name matches any generated session name from zoxide directories
-            for zoxide_dir in &self.zoxide_directories {
-                // Match exact name or incremented names (e.g., "project" matches "project.2", "project.3", etc.)
-                if session.name == zoxide_dir.session_name
-                    || self.is_incremented_session(&session.name, &zoxide_dir.session_name)
-                {
-                    items.push(SessionItem::ExistingSession {
-                        name: session.name.clone(),
-                        directory: zoxide_dir.directory.clone(),
-                        is_current: session.is_current_session,
-                    });
-                    break;
-                }
-            }
+            let directory = self
+                .zoxide_directories
+                .iter()
+                .find(|dir| {
+                    session.name == dir.session_name
+                        || self.is_incremented_session(&session.name, &dir.session_name)
+                })
+                .map(|dir| dir.directory.clone())
+                .unwrap_or_default();
+
+            items.push(SessionItem::ExistingSession {
+                name: session.name.clone(),
+                directory,
+                is_current: session.is_current_session,
+            });
+            shown_session_names.insert(session.name.clone());
         }
 
-        // Add resurrectable sessions if configured to show them
+        // Add resurrectable sessions if configured. Skip any whose name is
+        // already shown as an active session.
         if self.config.show_resurrectable_sessions {
             for (name, duration) in self.session_manager.resurrectable_sessions() {
-                // Check if this session name matches any generated session name from zoxide directories
-                for zoxide_dir in &self.zoxide_directories {
-                    // Match exact name or incremented names (e.g., "project" matches "project.2", "project.3", etc.)
-                    if name == &zoxide_dir.session_name
-                        || self.is_incremented_session(name, &zoxide_dir.session_name)
-                    {
-                        items.push(SessionItem::ResurrectableSession {
-                            name: name.clone(),
-                            duration: duration.clone(),
-                        });
-                        break;
-                    }
+                if shown_session_names.contains(name) {
+                    continue;
                 }
+                items.push(SessionItem::ResurrectableSession {
+                    name: name.clone(),
+                    duration: *duration,
+                });
+                shown_session_names.insert(name.clone());
             }
         }
 
