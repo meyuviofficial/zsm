@@ -26,7 +26,8 @@ ZSM bridges the gap between `zoxide` and Zellij's session management:
 
 ```bash
 mkdir -p ~/.config/zellij/plugins
-curl -sSL -o ~/.config/zellij/plugins https://github.com/liam-mackie/zsm/releases/download/v0.1.0/zsm.wasm
+curl -sSL -o ~/.config/zellij/plugins/zsm.wasm \
+  https://github.com/meyuviofficial/zsm/releases/latest/download/zsm.wasm
 ```
 
 ### Option 2: Build from Source
@@ -69,7 +70,7 @@ keybinds clear-defaults=true {
 ...
     shared_except "locked" {
         bind "<your-key>" { 
-            // Note: you must use the absolulte path to the plugin file
+            // Note: you must use the absolute path to the plugin file
             LaunchOrFocusPlugin "file:/your/home/dir/.config/zellij/plugins/zsm.wasm" {
                 floating true
                 move_to_focused_tab true
@@ -192,7 +193,7 @@ zellij action launch-or-focus-plugin file:target/wasm32-wasip1/debug/zsm.wasm
 #### Option 2: Using watchexec
 
 ```bash
-watchexec --exts rs -- 'cargo build --target wasm-wasip1; zellij action start-or-reload-plugin file:target/wasm32-wasip1/debug/zsm.wasm'
+watchexec --exts rs -- 'cargo build --target wasm32-wasip1; zellij action start-or-reload-plugin file:target/wasm32-wasip1/debug/zsm.wasm'
 ```
 
 ## 🤝 Contributing
